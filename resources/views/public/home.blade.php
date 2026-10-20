@@ -333,7 +333,7 @@
 
         {{-- Nivel 1: 3 Líneas Principales de Alto Volumen con Pedestal de Icono Profesional --}}
         @if($flagshipCategories->isNotEmpty())
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5 mb-5" data-cat-flagship-grid>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-5" data-cat-flagship-grid>
                 @foreach($flagshipCategories as $category)
                     @php
                         $theme = $category->iconTheme();

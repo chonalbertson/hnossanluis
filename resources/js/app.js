@@ -1221,12 +1221,46 @@
         quickQuoteOpenBtns.forEach((btn) => btn.addEventListener('click', () => setQuickQuoteModalOpen(true)));
         quickQuoteCloseBtns.forEach((btn) => btn.addEventListener('click', () => setQuickQuoteModalOpen(false)));
 
+        // Floating WhatsApp Advisors Popover (click-to-open before entering WhatsApp)
+        const waPopover = document.querySelector('[data-wa-floating-popover]');
+        const waToggleBtns = document.querySelectorAll('[data-wa-floating-toggle]');
+        const waCloseBtns = document.querySelectorAll('[data-wa-floating-close]');
+
+        function setWaPopoverOpen(isOpen) {
+            if (!waPopover) return;
+            waPopover.classList.toggle('hidden', !isOpen);
+            waToggleBtns.forEach((btn) => btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false'));
+        }
+
+        waToggleBtns.forEach((btn) => {
+            btn.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                const isHidden = waPopover?.classList.contains('hidden');
+                setWaPopoverOpen(Boolean(isHidden));
+            });
+        });
+
+        waCloseBtns.forEach((btn) => {
+            btn.addEventListener('click', () => setWaPopoverOpen(false));
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!waPopover || waPopover.classList.contains('hidden')) return;
+            if (waPopover.contains(event.target)) return;
+            for (const btn of waToggleBtns) {
+                if (btn.contains(event.target)) return;
+            }
+            setWaPopoverOpen(false);
+        });
+
         // Close modals/drawers/dropdowns on Escape key
         document.addEventListener('keydown', (event) => {
             if (event.key === 'Escape') {
                 setMobileMenuOpen(false);
                 setFilterDrawerOpen(false);
                 setQuickQuoteModalOpen(false);
+                setWaPopoverOpen(false);
                 closeAllSearchDropdowns();
                 if (catMenuPanel) {
                     catMenuPanel.classList.add('hidden');
