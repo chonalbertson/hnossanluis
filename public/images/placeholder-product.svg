@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="600" height="600" fill="none">
+  <rect width="600" height="600" fill="#F8FAFC"/>
+  <rect x="24" y="24" width="552" height="552" rx="16" stroke="#E2E8F0" stroke-width="2" stroke-dasharray="8 8"/>
+  <g transform="translate(210, 175)">
+    <rect x="20" y="20" width="140" height="140" rx="12" fill="#0F172A" fill-opacity="0.06" stroke="#334155" stroke-width="3"/>
+    <path d="M55 90H125M90 55V125" stroke="#D97706" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="50" cy="50" r="6" fill="#64748B"/>
+    <circle cx="130" cy="50" r="6" fill="#64748B"/>
+    <circle cx="50" cy="130" r="6" fill="#64748B"/>
+    <circle cx="130" cy="130" r="6" fill="#64748B"/>
+  </g>
+  <text x="300" y="375" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="700" fill="#1E293B">IMPORT HNS SAN LUIS</text>
+  <text x="300" y="402" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="500" fill="#64748B">ESPECIFICACIÓN TÉCNICA B2B</text>
+</svg>

@@ -1,0 +1,341 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../views/**/*.blade.php';
+@source '../js/**/*.js';
+
+@theme {
+    --font-sans: 'Inter', 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-display: 'Plus Jakarta Sans', 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+
+    --color-brand-red: #DC2626;
+    --color-brand-red-hover: #B91C1C;
+    --color-brand-red-dark: #991B1B;
+    --color-brand-red-soft: #FEF2F2;
+    --color-brand-red-border: #FECACA;
+
+    --color-brand-blue: #1E3A8A;
+    --color-brand-blue-mid: #1D4ED8;
+    --color-brand-blue-hover: #1E40AF;
+    --color-brand-blue-soft: #EFF6FF;
+    --color-brand-blue-border: #BFDBFE;
+
+    --color-surface-white: #FFFFFF;
+    --color-surface-canvas: #F8FAFC;
+    --color-surface-subtle: #F1F5F9;
+    --color-border-default: #E2E8F0;
+    --color-border-strong: #CBD5E1;
+
+    --color-ink-primary: #0F172A;
+    --color-ink-dark-surface: #1E293B;
+    --color-ink-secondary: #334155;
+    --color-ink-muted: #475569;
+}
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+        color: #0F172A;
+        background-color: #F8FAFC;
+        font-family: var(--font-sans);
+    }
+
+    /* WCAG 2.1 AA Focus Visible */
+    :focus-visible {
+        outline: 3px solid #1D4ED8;
+        outline-offset: 2px;
+    }
+
+    /* Respect user reduced motion preference */
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
+        }
+    }
+}
+
+/* Tabular numbers for SKUs, quantities, RUC, and prices */
+.tabular-nums {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Industrial Section Heading Accent */
+.section-heading-bar {
+    border-left: 4px solid #DC2626;
+    padding-left: 0.875rem;
+}
+
+/* Rich Content Styling for Institutional & Legal Pages (PageContent) */
+.cms-content h2,
+.cms-content h3 {
+    color: #0F172A;
+    font-weight: 700;
+    font-size: 1.25rem;
+    line-height: 1.4;
+    margin-top: 1.75rem;
+    margin-bottom: 0.75rem;
+    border-left: 4px solid #1E3A8A;
+    padding-left: 0.75rem;
+}
+
+.cms-content p {
+    color: #334155;
+    line-height: 1.75;
+    margin-bottom: 1rem;
+}
+
+.cms-content ul,
+.cms-content ol {
+    color: #334155;
+    margin-left: 1.5rem;
+    margin-bottom: 1.25rem;
+    list-style-type: disc;
+}
+
+.cms-content li {
+    margin-bottom: 0.5rem;
+    line-height: 1.65;
+}
+
+.cms-content strong {
+    color: #0F172A;
+    font-weight: 600;
+}
+
+/* Infinite Brand Logos Marquee Carousel */
+@keyframes brand-marquee {
+    0% {
+        transform: translate3d(0, 0, 0);
+    }
+    100% {
+        transform: translate3d(-50%, 0, 0);
+    }
+}
+
+.brand-marquee-viewport {
+    overflow: hidden;
+    position: relative;
+    mask-image: linear-gradient(to right, transparent 0%, black 7%, black 93%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 7%, black 93%, transparent 100%);
+}
+
+.brand-marquee-track {
+    display: flex;
+    width: max-content;
+    animation: brand-marquee 26s linear infinite;
+    will-change: transform;
+}
+
+.brand-marquee-viewport:hover .brand-marquee-track,
+.brand-marquee-viewport:focus-within .brand-marquee-track {
+    animation-play-state: paused;
+}
+
+
+/* Home Hero Slider: crossfade, Ken Burns, staggered text, floating products & autoplay progress */
+.hero-slide {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.9s ease, visibility 0.9s ease;
+}
+
+.hero-slide.is-active {
+    opacity: 1;
+    visibility: visible;
+    z-index: 1;
+}
+
+.hero-slide .slide-bg {
+    transform: scale(1.12);
+    transition: transform 8s linear;
+}
+
+.hero-slide.is-active .slide-bg {
+    transform: scale(1);
+}
+
+.hero-slide .slide-anim {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 0.7s cubic-bezier(0.2, 0.7, 0.2, 1), transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.hero-slide.is-active .slide-anim {
+    opacity: 1;
+    transform: none;
+    transition-delay: var(--d, 0ms);
+}
+
+.hero-slide .slide-visual {
+    opacity: 0;
+    transform: translateX(60px) scale(0.92) rotate(2deg);
+    transition: opacity 1s cubic-bezier(0.2, 0.7, 0.2, 1), transform 1s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.hero-slide.is-active .slide-visual {
+    opacity: 1;
+    transform: none;
+    transition-delay: 250ms;
+}
+
+@keyframes hero-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-14px); }
+}
+
+.hero-float {
+    animation: hero-float 6s ease-in-out infinite;
+}
+
+@keyframes hero-spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes hero-spin-reverse {
+    to { transform: rotate(-360deg); }
+}
+
+.hero-spin {
+    animation: hero-spin 40s linear infinite;
+}
+
+.hero-spin-reverse {
+    animation: hero-spin-reverse 28s linear infinite;
+}
+
+@keyframes hero-grid-drift {
+    0% { background-position: 0 0, 0 0; }
+    100% { background-position: 56px 56px, 56px 56px; }
+}
+
+.hero-grid-pattern {
+    background-image: linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+    background-size: 56px 56px;
+    animation: hero-grid-drift 18s linear infinite;
+}
+
+@keyframes banner-shine {
+    0% { transform: translateX(-140%) skewX(-22deg); }
+    35%, 100% { transform: translateX(240%) skewX(-22deg); }
+}
+
+.banner-shine-effect {
+    position: relative;
+    overflow: hidden;
+}
+
+.banner-shine-effect::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 45%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.14), transparent);
+    transform: translateX(-140%) skewX(-22deg);
+    animation: banner-shine 7s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    pointer-events: none;
+}
+
+@keyframes pulse-glow {
+    0%, 100% { opacity: 0.22; transform: scale(1); }
+    50% { opacity: 0.38; transform: scale(1.08); }
+}
+
+.banner-aura-glow {
+    animation: pulse-glow 5s ease-in-out infinite;
+}
+
+/* Professional Category Icon Pedestal Effects */
+.cat-icon-pedestal {
+    position: relative;
+    transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.35s ease;
+}
+
+.group:hover .cat-icon-pedestal {
+    transform: translateY(-3px) scale(1.06);
+}
+
+.cat-blueprint-bg {
+    background-image: radial-gradient(rgba(30, 58, 138, 0.12) 1px, transparent 1px);
+    background-size: 12px 12px;
+}
+
+@keyframes hero-progress {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+}
+
+.hero-progress-fill {
+    transform: scaleX(0);
+    transform-origin: left center;
+}
+
+[data-slider-dot].is-active .hero-progress-fill {
+    animation: hero-progress var(--hero-duration, 7000ms) linear forwards;
+}
+
+.hero-slider.is-paused [data-slider-dot].is-active .hero-progress-fill {
+    animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hero-slide,
+    .hero-slide .slide-bg,
+    .hero-slide .slide-anim,
+    .hero-slide .slide-visual,
+    .cat-icon-pedestal {
+        transition: none !important;
+        transform: none !important;
+    }
+
+    .hero-float,
+    .hero-spin,
+    .hero-spin-reverse,
+    .hero-grid-pattern,
+    .banner-aura-glow,
+    .banner-shine-effect::after {
+        animation: none !important;
+    }
+
+    [data-slider-dot].is-active .hero-progress-fill {
+        animation: none;
+        transform: scaleX(1);
+    }
+}
+
+/* Admin dashboard chart bars */
+@keyframes dash-bar-grow-y {
+    from { transform: scaleY(0); }
+    to { transform: scaleY(1); }
+}
+
+@keyframes dash-bar-grow-x {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+}
+
+.dash-bar {
+    transform-origin: bottom;
+    animation: dash-bar-grow-y 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.dash-bar-x {
+    transform-origin: left;
+    animation: dash-bar-grow-x 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dash-bar,
+    .dash-bar-x {
+        animation: none;
+    }
+}
