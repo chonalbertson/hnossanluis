@@ -227,6 +227,12 @@ class PublicPagesAndSeoTest extends TestCase
         $response->assertStatus(200);
 
         $content = $response->getContent();
+        $this->assertStringContainsString("User-agent: Googlebot\nAllow: /", $content);
+        $this->assertStringContainsString("User-agent: bingbot\nAllow: /", $content);
+        $this->assertStringContainsString("User-agent: Amazonbot\nDisallow: /", $content);
+        $this->assertStringContainsString("User-agent: Reflectionbot\nDisallow: /", $content);
+        $this->assertStringContainsString("User-agent: Bytespider\nDisallow: /", $content);
+        $this->assertStringContainsString("User-agent: meta-externalagent\nDisallow: /", $content);
         $this->assertStringContainsString('User-agent: *', $content);
         $this->assertStringContainsString('Disallow: /admin', $content);
         $this->assertStringContainsString('Sitemap: '.route('seo.sitemap'), $content);

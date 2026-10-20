@@ -5,6 +5,10 @@
 
     RewriteEngine On
 
+    # Block high-volume AI/scraper crawlers at Apache edge (Googlebot & bingbot remain allowed)
+    RewriteCond %{HTTP_USER_AGENT} (Amazonbot|Reflectionbot|Bytespider|meta-externalagent) [NC]
+    RewriteRule .* - [F,L]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]

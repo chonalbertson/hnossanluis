@@ -149,13 +149,11 @@ class SeoController extends Controller
     }
 
     /**
-     * Dynamic robots.txt blocking /admin and non-indexable endpoints, pointing to sitemap.xml.
+     * Dynamic robots.txt blocking aggressive scraper/AI bots and /admin endpoints, while allowing Googlebot and bingbot.
      */
     public function robots(): Response
     {
-        $lines = [
-            'User-agent: *',
-            'Allow: /',
+        $disallowedPaths = [
             'Disallow: /admin',
             'Disallow: /admin/',
             'Disallow: /mi-cuenta',
@@ -170,6 +168,32 @@ class SeoController extends Controller
             'Disallow: /*&sort=',
             'Disallow: /*?view=',
             'Disallow: /*&view=',
+        ];
+
+        $lines = [
+            'User-agent: Googlebot',
+            'Allow: /',
+            ...$disallowedPaths,
+            '',
+            'User-agent: bingbot',
+            'Allow: /',
+            ...$disallowedPaths,
+            '',
+            'User-agent: Amazonbot',
+            'Disallow: /',
+            '',
+            'User-agent: Reflectionbot',
+            'Disallow: /',
+            '',
+            'User-agent: Bytespider',
+            'Disallow: /',
+            '',
+            'User-agent: meta-externalagent',
+            'Disallow: /',
+            '',
+            'User-agent: *',
+            'Allow: /',
+            ...$disallowedPaths,
             '',
             'Sitemap: '.route('seo.sitemap'),
         ];
