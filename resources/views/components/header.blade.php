@@ -34,8 +34,8 @@
     Saltar al contenido
 </a>
 
-<!-- 1. Topbar Corporativo (#0F172A) -->
-<div class="bg-[#0F172A] text-slate-300 text-xs border-b border-slate-800">
+<!-- 1. Topbar Corporativo (#0F172A) - Oculto en móvil -->
+<div class="hidden md:block bg-[#0F172A] text-slate-300 text-xs border-b border-slate-800">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-1.5 flex items-center justify-between gap-2">
         <div class="flex flex-wrap items-center gap-2 font-medium text-slate-200">
             <span class="inline-block w-2 h-2 rounded-full bg-[#DC2626] shrink-0" aria-hidden="true"></span>
@@ -77,30 +77,30 @@
 
 <!-- 2. Main Sticky Header -->
 <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-xs">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-        <div class="flex items-center justify-between gap-4 lg:gap-6">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3">
+        <div class="flex items-center justify-between gap-2 sm:gap-4 lg:gap-6">
             <!-- Mobile Hamburger + Corporate Logo -->
-            <div class="flex items-center gap-2.5 shrink-0">
+            <div class="flex items-center gap-1.5 sm:gap-2.5 min-w-0">
                 <button type="button"
                         data-mobile-menu-toggle
                         aria-expanded="false"
                         aria-controls="mobile-nav-drawer"
                         aria-label="Abrir menú"
-                        class="lg:hidden inline-flex items-center justify-center p-2 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100">
+                        class="lg:hidden inline-flex items-center justify-center p-1.5 sm:p-2 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100 shrink-0">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                     </svg>
                 </button>
 
-                <a href="{{ route('home') }}" class="group flex items-center shrink-0 py-0.5" aria-label="{{ $companyName }} - Inicio">
-                    <picture class="shrink-0">
+                <a href="{{ route('home') }}" class="group flex items-center min-w-0 py-0.5" aria-label="{{ $companyName }} - Inicio">
+                    <picture class="block min-w-0">
                         <source srcset="{{ asset('images/logo-sanluis-horizontal.webp') }}" type="image/webp">
                         <img src="{{ asset('images/logo-sanluis-horizontal.png') }}"
                              alt="{{ $companyName }}"
                              width="264"
                              height="62"
                              fetchpriority="high"
-                             class="h-12 sm:h-14 lg:h-16 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.01]">
+                             class="h-9 sm:h-14 lg:h-16 w-auto max-w-[156px] sm:max-w-none object-contain transition-transform duration-200 group-hover:scale-[1.01]">
                     </picture>
                 </a>
             </div>
@@ -157,7 +157,7 @@
             </div>
 
             <!-- Right Actions: Concise Buttons -->
-            <div class="flex items-center gap-2.5 shrink-0">
+            <div class="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
                 @if($currentUser && $currentUser->canAccessAdminPanel())
                     <a href="{{ $adminUrl }}"
                        class="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white shadow-xs transition-colors"
@@ -172,10 +172,10 @@
 
                 <!-- Quote Cart Button -->
                 <a href="{{ route('quote.index') }}"
-                   class="group inline-flex items-center gap-2.5 pl-2 pr-3 py-1.5 rounded-2xl bg-gradient-to-r from-[#DC2626] to-[#B91C1C] hover:from-[#B91C1C] hover:to-[#991B1B] text-white shadow-sm shadow-red-900/15 hover:shadow-md transition-all"
+                   class="group inline-flex items-center gap-1.5 sm:gap-2.5 pl-1.5 pr-2 sm:pl-2 sm:pr-3 py-1 sm:py-1.5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-[#DC2626] to-[#B91C1C] hover:from-[#B91C1C] hover:to-[#991B1B] text-white shadow-sm shadow-red-900/15 hover:shadow-md transition-all shrink-0"
                    aria-label="Cotizar ({{ $quoteCartCount }} productos)">
-                    <span class="w-8 h-8 rounded-xl bg-white/15 group-hover:bg-white/20 flex items-center justify-center shrink-0 transition-colors">
-                        <svg class="w-4 h-4 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-white/15 group-hover:bg-white/20 flex items-center justify-center shrink-0 transition-colors">
+                        <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.1" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
                         </svg>
                     </span>
@@ -184,7 +184,7 @@
                         <span class="text-xs sm:text-sm font-extrabold tracking-tight">Cotizar</span>
                     </span>
                     <span data-quote-cart-count
-                          class="inline-flex items-center justify-center min-w-6 h-6 px-1.5 rounded-xl bg-white text-[#DC2626] font-mono text-xs font-black tabular-nums shadow-2xs">
+                          class="inline-flex items-center justify-center min-w-5 h-5 sm:min-w-6 sm:h-6 px-1 sm:px-1.5 rounded-lg sm:rounded-xl bg-white text-[#DC2626] font-mono text-[11px] sm:text-xs font-black tabular-nums shadow-2xs">
                         {{ $quoteCartCount }}
                     </span>
                 </a>
@@ -611,3 +611,67 @@
         @endif
     </div>
 </div>
+
+<!-- Fixed Mobile Bottom Navigation Bar (Inicio - Catálogo - Cotización - WhatsApp) -->
+@php
+    $mobileWhatsappUrl = app(WhatsAppService::class)->generalContactUrl();
+    $mobileWaGaPayload = json_encode([
+        'cta_location' => 'mobile_bottom_nav',
+        'context_type' => 'general',
+    ], JSON_UNESCAPED_UNICODE);
+@endphp
+<nav aria-label="Navegación inferior móvil"
+     class="md:hidden fixed bottom-0 inset-x-0 z-50 bg-[#C80000] text-white border-t border-red-900/60 shadow-[0_-4px_20px_rgba(15,23,42,0.28)] pb-[env(safe-area-inset-bottom)]">
+    <div class="grid grid-cols-4 items-center h-16">
+        <!-- 1. Inicio -->
+        <a href="{{ route('home') }}"
+           class="flex flex-col items-center justify-center gap-1 h-full transition-opacity {{ request()->routeIs('home') ? 'opacity-100' : 'opacity-90 hover:opacity-100' }}">
+            <svg class="w-6 h-6 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1h-5.5v-6h-5v6H4a1 1 0 01-1-1v-9.5z"/>
+            </svg>
+            <span class="text-[11px] font-bold leading-none tracking-tight text-white">Inicio</span>
+        </a>
+
+        <!-- 2. Catálogo -->
+        <a href="{{ route('catalog.index') }}"
+           class="flex flex-col items-center justify-center gap-1 h-full transition-opacity {{ request()->routeIs('catalog.*') ? 'opacity-100' : 'opacity-90 hover:opacity-100' }}">
+            <svg class="w-6 h-6 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3.5" y="3.5" width="7" height="7" rx="1" stroke-width="2"/>
+                <rect x="13.5" y="3.5" width="7" height="7" rx="1" stroke-width="2"/>
+                <rect x="3.5" y="13.5" width="7" height="7" rx="1" stroke-width="2"/>
+                <rect x="13.5" y="13.5" width="7" height="7" rx="1" stroke-width="2"/>
+            </svg>
+            <span class="text-[11px] font-bold leading-none tracking-tight text-white">Catálogo</span>
+        </a>
+
+        <!-- 3. Cotización -->
+        <a href="{{ route('quote.index') }}"
+           class="flex flex-col items-center justify-center gap-1 h-full transition-opacity {{ request()->routeIs('quote.*') ? 'opacity-100' : 'opacity-90 hover:opacity-100' }}">
+            <span class="relative inline-flex items-center justify-center">
+                <svg class="w-6 h-6 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 3h7l5 5v12a1 1 0 01-1 1H7a1 1 0 01-1-1V4a1 1 0 011-1z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3v5h5M9 13h6M9 17h6M9 9h2"/>
+                </svg>
+                <span data-quote-cart-count
+                      class="absolute -top-1.5 -right-3.5 inline-flex items-center justify-center min-w-5 h-5 px-1 rounded-full bg-white text-[#C80000] font-mono text-[11px] font-black tabular-nums shadow-xs">
+                    {{ $quoteCartCount }}
+                </span>
+            </span>
+            <span class="text-[11px] font-bold leading-none tracking-tight text-white">Cotización</span>
+        </a>
+
+        <!-- 4. WhatsApp -->
+        <a href="{{ $mobileWhatsappUrl }}"
+           target="_blank"
+           rel="noopener noreferrer"
+           data-ga-event="whatsapp_click"
+           data-ga-params="{{ $mobileWaGaPayload }}"
+           aria-label="Contactar por WhatsApp"
+           class="flex flex-col items-center justify-center gap-1 h-full transition-transform active:scale-95">
+            <svg class="w-6 h-6 text-[#25D366] fill-current shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+            </svg>
+            <span class="text-[11px] font-bold leading-none tracking-tight text-[#25D366]">WhatsApp</span>
+        </a>
+    </div>
+</nav>

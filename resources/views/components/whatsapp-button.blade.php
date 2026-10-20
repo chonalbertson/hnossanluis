@@ -28,7 +28,7 @@
         @php
             $floatingAdvisors = app(WhatsAppService::class)->getAdvisors();
         @endphp
-        <div class="fixed bottom-5 right-5 z-40 group/wa">
+        <div class="hidden md:block fixed bottom-5 right-5 z-40 group/wa">
             <!-- Popover with all WhatsApp Advisors -->
             <div class="hidden group-hover/wa:block group-focus-within/wa:block mb-2.5 w-68 rounded-2xl bg-[#0F172A] text-white border border-slate-700 shadow-2xl p-3.5 space-y-2">
                 <p class="text-[11px] font-extrabold text-[#BFDBFE] text-center">

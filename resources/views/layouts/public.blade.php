@@ -10,7 +10,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('head')
 </head>
-<body class="min-h-full flex flex-col bg-[#F8FAFC] text-[#0F172A] antialiased">
+<body class="min-h-full flex flex-col bg-[#F8FAFC] text-[#0F172A] antialiased pb-16 md:pb-0">
     <x-header />
 
     <!-- Global Flash Notifications -->
