@@ -14,7 +14,7 @@ class Category extends Model
 {
     use HasFactory;
 
-    public const NAV_CACHE_KEY = 'catalog:nav_categories_tree';
+    public const NAV_CACHE_KEY = 'catalog:nav_categories_tree_v2';
 
     protected static ?Collection $memoizedNavTree = null;
 
@@ -52,10 +52,14 @@ class Category extends Model
             self::$memoizedAppId = $currentAppId;
         }
 
-        return self::$memoizedNavTree ??= Cache::remember(
+        if (self::$memoizedNavTree !== null) {
+            return self::$memoizedNavTree;
+        }
+
+        $rawTree = Cache::remember(
             self::NAV_CACHE_KEY,
             1800,
-            fn (): Collection => self::query()
+            fn (): array => self::query()
                 ->whereNull('parent_id')
                 ->where('is_active', true)
                 ->withCount(['products' => fn ($q) => $q->where('status', 'published')])
@@ -67,7 +71,32 @@ class Category extends Model
                 ])
                 ->orderBy('sort_order')
                 ->get()
+                ->map(function (self $cat): array {
+                    $attrs = $cat->getAttributes();
+                    $attrs['children'] = $cat->children
+                        ->map(fn (self $sub): array => $sub->getAttributes())
+                        ->all();
+
+                    return $attrs;
+                })
+                ->all()
         );
+
+        $models = array_map(function (array $row): self {
+            $childrenRows = is_array($row['children'] ?? null) ? $row['children'] : [];
+            unset($row['children']);
+
+            $parent = (new self)->newFromBuilder($row);
+            $children = new Collection(array_map(
+                fn (array $subRow): self => (new self)->newFromBuilder($subRow),
+                $childrenRows
+            ));
+            $parent->setRelation('children', $children);
+
+            return $parent;
+        }, is_array($rawTree) ? $rawTree : []);
+
+        return self::$memoizedNavTree = new Collection($models);
     }
 
     public static function clearNavigationCache(): void
