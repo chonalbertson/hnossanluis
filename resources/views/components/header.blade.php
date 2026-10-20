@@ -123,6 +123,7 @@
                             <label for="header-search-input" class="sr-only">Buscar producto, SKU o marca</label>
                             <input id="header-search-input"
                                    type="search"
+                                   role="combobox"
                                    name="q"
                                    value="{{ request('q') }}"
                                    autocomplete="off"
@@ -202,6 +203,7 @@
                     <label for="mobile-search-input" class="sr-only">Buscar producto, SKU o marca</label>
                     <input id="mobile-search-input"
                            type="search"
+                           role="combobox"
                            name="q"
                            value="{{ request('q') }}"
                            autocomplete="off"
