@@ -331,92 +331,87 @@
             @endforeach
         </div>
 
-        {{-- Nivel 1: 3 Líneas Principales de Alto Volumen con Pedestal de Icono Profesional --}}
-        @if($flagshipCategories->isNotEmpty())
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-5" data-cat-flagship-grid>
-                @foreach($flagshipCategories as $category)
-                    @php
-                        $theme = $category->iconTheme();
-                        $sectorKey = $theme['sector'];
-                    @endphp
-                    <article data-cat-card
-                             data-cat-sector="{{ $sectorKey }}"
-                             data-cat-primary="true"
-                             class="group relative bg-white rounded-2xl border border-slate-200/90 hover:border-[#1E3A8A] shadow-xs hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col justify-between">
-                        <div class="h-1.5 w-full bg-gradient-to-r {{ $theme['bar'] }}"></div>
+        {{-- Cuadrícula Unificada de Categorías (2 columnas en tablet sin huecos, 3 en desktop) --}}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5" data-cat-regular-grid>
+            @foreach($flagshipCategories as $category)
+                @php
+                    $theme = $category->iconTheme();
+                    $sectorKey = $theme['sector'];
+                @endphp
+                <article data-cat-card
+                         data-cat-sector="{{ $sectorKey }}"
+                         data-cat-primary="true"
+                         class="flex group relative bg-white rounded-2xl border border-slate-200/90 hover:border-[#1E3A8A] shadow-xs hover:shadow-xl transition-all duration-300 overflow-hidden flex-col justify-between">
+                    <div class="h-1.5 w-full bg-gradient-to-r {{ $theme['bar'] }}"></div>
 
-                        {{-- Sutil marca de agua vectorial en el fondo --}}
-                        <div class="absolute -right-8 -top-6 w-36 h-36 rounded-full {{ $theme['glow'] }} blur-2xl pointer-events-none"></div>
+                    {{-- Sutil marca de agua vectorial en el fondo --}}
+                    <div class="absolute -right-8 -top-6 w-36 h-36 rounded-full {{ $theme['glow'] }} blur-2xl pointer-events-none"></div>
 
-                        <div class="relative p-5 sm:p-6 flex-1 flex flex-col justify-between gap-4">
-                            {{-- Fila Superior: Código Técnico + Contador de SKUs --}}
-                            <div class="flex items-center justify-between gap-2">
-                                <span class="text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full border {{ $theme['badge'] }}">
-                                    {{ $theme['code'] }} • Línea Principal
-                                </span>
-                                <span class="font-mono text-xs font-black bg-[#0F172A] text-white px-2.5 py-1 rounded-lg tabular-nums shadow-2xs">
-                                    {{ $category->products_count }} SKUs
-                                </span>
-                            </div>
-
-                            {{-- Contenido Central + Pedestal de Icono Vectorial Profesional --}}
-                            <div class="flex items-center justify-between gap-4">
-                                <div class="min-w-0 flex-1">
-                                    <a href="{{ route('catalog.index', ['category' => $category->slug]) }}" class="block group/title">
-                                        <h3 class="text-lg sm:text-xl font-black text-[#0F172A] group-hover/title:text-[#1E3A8A] leading-tight transition-colors">
-                                            {{ $category->name }}
-                                        </h3>
-                                    </a>
-                                    @if($category->description)
-                                        <p class="mt-1.5 text-xs text-slate-500 line-clamp-2 leading-relaxed">
-                                            {{ $category->description }}
-                                        </p>
-                                    @endif
-                                </div>
-
-                                {{-- Pedestal de Icono Técnico Profesional (Sin fotos de producto) --}}
-                                <a href="{{ route('catalog.index', ['category' => $category->slug]) }}"
-                                   tabindex="-1"
-                                   aria-hidden="true"
-                                   class="cat-icon-pedestal w-20 h-20 sm:w-22 sm:h-22 rounded-2xl {{ $theme['iconBg'] }} ring-4 {{ $theme['iconRing'] }} p-4 flex flex-col items-center justify-center shrink-0 shadow-lg overflow-hidden">
-                                    <div class="absolute inset-0 opacity-15" style="background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 8px 8px;"></div>
-                                    <div class="relative z-10">
-                                        {!! $category->iconSvg('w-10 h-10 sm:w-11 sm:h-11') !!}
-                                    </div>
-                                </a>
-                            </div>
-
-                            {{-- Subcategorías con Mini Icono + CTA Directo --}}
-                            <div class="pt-3 border-t border-slate-100 flex flex-col gap-3">
-                                @if($category->children->isNotEmpty())
-                                    <div class="flex flex-wrap items-center gap-1.5">
-                                        @foreach($category->children as $sub)
-                                            <a href="{{ route('catalog.index', ['category' => $category->slug, 'subcategory' => $sub->slug]) }}"
-                                               class="inline-flex items-center gap-1.5 text-[11px] font-semibold bg-slate-50 hover:bg-[#1E3A8A] text-slate-700 hover:text-white px-2.5 py-1 rounded-lg border border-slate-200/80 hover:border-[#1E3A8A] transition-colors max-w-full">
-                                                <span class="text-[#1E3A8A] group-hover:text-current shrink-0 opacity-80">{!! $sub->iconSvg('w-3.5 h-3.5') !!}</span>
-                                                <span class="truncate max-w-[165px]">{{ $sub->name }}</span>
-                                                @if(isset($sub->sub_products_count))
-                                                    <span class="font-mono text-[10px] opacity-65">({{ $sub->sub_products_count }})</span>
-                                                @endif
-                                            </a>
-                                        @endforeach
-                                    </div>
-                                @endif
-
-                                <a href="{{ route('catalog.index', ['category' => $category->slug]) }}"
-                                   class="inline-flex items-center justify-between text-xs font-extrabold uppercase tracking-wider text-[#1E3A8A] group-hover:text-[#DC2626] transition-colors">
-                                    <span>Explorar {{ $category->children->count() }} subcategorías</span>
-                                    <span class="w-6 h-6 rounded-full bg-slate-100 group-hover:bg-[#DC2626] group-hover:text-white flex items-center justify-center transition-colors">&rarr;</span>
-                                </a>
-                            </div>
+                    <div class="relative p-5 sm:p-6 flex-1 flex flex-col justify-between gap-4">
+                        {{-- Fila Superior: Código Técnico + Contador de SKUs --}}
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full border {{ $theme['badge'] }}">
+                                {{ $theme['code'] }} • Línea Principal
+                            </span>
+                            <span class="font-mono text-xs font-black bg-[#0F172A] text-white px-2.5 py-1 rounded-lg tabular-nums shadow-2xs">
+                                {{ $category->products_count }} SKUs
+                            </span>
                         </div>
-                    </article>
-                @endforeach
-            </div>
-        @endif
 
-        {{-- Nivel 2: Cuadrícula Técnica de Especialidades con Iconos Profesionales --}}
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4" data-cat-regular-grid>
+                        {{-- Contenido Central + Pedestal de Icono Vectorial Profesional --}}
+                        <div class="flex items-center justify-between gap-4">
+                            <div class="min-w-0 flex-1">
+                                <a href="{{ route('catalog.index', ['category' => $category->slug]) }}" class="block group/title">
+                                    <h3 class="text-lg sm:text-xl font-black text-[#0F172A] group-hover/title:text-[#1E3A8A] leading-tight transition-colors">
+                                        {{ $category->name }}
+                                    </h3>
+                                </a>
+                                @if($category->description)
+                                    <p class="mt-1.5 text-xs text-slate-500 line-clamp-2 leading-relaxed">
+                                        {{ $category->description }}
+                                    </p>
+                                @endif
+                            </div>
+
+                            {{-- Pedestal de Icono Técnico Profesional (Sin fotos de producto) --}}
+                            <a href="{{ route('catalog.index', ['category' => $category->slug]) }}"
+                               tabindex="-1"
+                               aria-hidden="true"
+                               class="cat-icon-pedestal w-20 h-20 sm:w-22 sm:h-22 rounded-2xl {{ $theme['iconBg'] }} ring-4 {{ $theme['iconRing'] }} p-4 flex flex-col items-center justify-center shrink-0 shadow-lg overflow-hidden">
+                                <div class="absolute inset-0 opacity-15" style="background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 8px 8px;"></div>
+                                <div class="relative z-10">
+                                    {!! $category->iconSvg('w-10 h-10 sm:w-11 sm:h-11') !!}
+                                </div>
+                            </a>
+                        </div>
+
+                        {{-- Subcategorías con Mini Icono + CTA Directo --}}
+                        <div class="pt-3 border-t border-slate-100 flex flex-col gap-3">
+                            @if($category->children->isNotEmpty())
+                                <div class="flex flex-wrap items-center gap-1.5">
+                                    @foreach($category->children as $sub)
+                                        <a href="{{ route('catalog.index', ['category' => $category->slug, 'subcategory' => $sub->slug]) }}"
+                                           class="inline-flex items-center gap-1.5 text-[11px] font-semibold bg-slate-50 hover:bg-[#1E3A8A] text-slate-700 hover:text-white px-2.5 py-1 rounded-lg border border-slate-200/80 hover:border-[#1E3A8A] transition-colors max-w-full">
+                                            <span class="text-[#1E3A8A] group-hover:text-current shrink-0 opacity-80">{!! $sub->iconSvg('w-3.5 h-3.5') !!}</span>
+                                            <span class="truncate max-w-[165px]">{{ $sub->name }}</span>
+                                            @if(isset($sub->sub_products_count))
+                                                <span class="font-mono text-[10px] opacity-65">({{ $sub->sub_products_count }})</span>
+                                            @endif
+                                        </a>
+                                    @endforeach
+                                </div>
+                            @endif
+
+                            <a href="{{ route('catalog.index', ['category' => $category->slug]) }}"
+                               class="inline-flex items-center justify-between text-xs font-extrabold uppercase tracking-wider text-[#1E3A8A] group-hover:text-[#DC2626] transition-colors">
+                                <span>Explorar {{ $category->children->count() }} subcategorías</span>
+                                <span class="w-6 h-6 rounded-full bg-slate-100 group-hover:bg-[#DC2626] group-hover:text-white flex items-center justify-center transition-colors">&rarr;</span>
+                            </a>
+                        </div>
+                    </div>
+                </article>
+            @endforeach
+
             @foreach($regularCategories as $category)
                 @php
                     $theme = $category->iconTheme();
