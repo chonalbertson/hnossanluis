@@ -16,9 +16,8 @@ class SeoController extends Controller
      */
     public function sitemap(): Response
     {
-        $indexablePages = PageContent::query()
-            ->where('is_indexable', true)
-            ->get()
+        $allPages = PageContent::query()
+            ->get(['page_key', 'is_indexable', 'updated_at'])
             ->keyBy('page_key');
 
         $companySections = [
@@ -58,14 +57,12 @@ class SeoController extends Controller
 
         $urls = [];
         foreach ($staticRoutes as $item) {
-            if ($item['key'] !== null && $indexablePages->has($item['key']) === false) {
-                $pageRecord = PageContent::query()->where('page_key', $item['key'])->first();
-                if ($pageRecord && ! $pageRecord->is_indexable) {
-                    continue;
-                }
+            $pageRecord = $item['key'] !== null ? $allPages->get($item['key']) : null;
+            if ($pageRecord && ! $pageRecord->is_indexable) {
+                continue;
             }
-            $lastmod = ($item['key'] && $indexablePages->get($item['key'])?->updated_at)
-                ? $indexablePages->get($item['key'])->updated_at->toAtomString()
+            $lastmod = ($pageRecord && $pageRecord->updated_at)
+                ? $pageRecord->updated_at->toAtomString()
                 : now()->toAtomString();
 
             $urls[] = [

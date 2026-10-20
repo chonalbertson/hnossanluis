@@ -26,6 +26,21 @@ class ImportExportController extends Controller
         abort_unless($request->user()?->hasPermission('imports.manage'), 403);
 
         $batches = ProductImportBatch::query()
+            ->select([
+                'id',
+                'user_id',
+                'filename',
+                'status',
+                'total_rows',
+                'to_create_count',
+                'to_update_count',
+                'created_count',
+                'updated_count',
+                'rejected_count',
+                'executed_at',
+                'created_at',
+                'updated_at',
+            ])
             ->with('user')
             ->latest()
             ->paginate(12);

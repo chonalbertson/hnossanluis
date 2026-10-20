@@ -49,6 +49,21 @@ class Product extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::saved(function (): void {
+            Category::clearNavigationCache();
+        });
+
+        static::deleted(function (): void {
+            Category::clearNavigationCache();
+        });
+
+        static::restored(function (): void {
+            Category::clearNavigationCache();
+        });
+    }
+
     public static function formatSentenceCase(?string $value): ?string
     {
         if ($value === null) {

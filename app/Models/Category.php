@@ -2,14 +2,23 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
+use Throwable;
 
 class Category extends Model
 {
     use HasFactory;
+
+    public const NAV_CACHE_KEY = 'catalog:nav_categories_tree';
+
+    protected static ?Collection $memoizedNavTree = null;
+
+    protected static ?int $memoizedAppId = null;
 
     protected $fillable = [
         'parent_id',
@@ -23,6 +32,54 @@ class Category extends Model
         'meta_title',
         'meta_description',
     ];
+
+    protected static function booted(): void
+    {
+        static::saved(function (): void {
+            self::clearNavigationCache();
+        });
+
+        static::deleted(function (): void {
+            self::clearNavigationCache();
+        });
+    }
+
+    public static function cachedNavigationTree(): Collection
+    {
+        $currentAppId = spl_object_id(app());
+        if (self::$memoizedAppId !== $currentAppId) {
+            self::$memoizedNavTree = null;
+            self::$memoizedAppId = $currentAppId;
+        }
+
+        return self::$memoizedNavTree ??= Cache::remember(
+            self::NAV_CACHE_KEY,
+            1800,
+            fn (): Collection => self::query()
+                ->whereNull('parent_id')
+                ->where('is_active', true)
+                ->withCount(['products' => fn ($q) => $q->where('status', 'published')])
+                ->with([
+                    'children' => fn ($q) => $q
+                        ->where('is_active', true)
+                        ->withCount(['subProducts' => fn ($sq) => $sq->where('status', 'published')])
+                        ->orderBy('sort_order'),
+                ])
+                ->orderBy('sort_order')
+                ->get()
+        );
+    }
+
+    public static function clearNavigationCache(): void
+    {
+        self::$memoizedNavTree = null;
+
+        try {
+            Cache::forget(self::NAV_CACHE_KEY);
+        } catch (Throwable) {
+            // Ignore cache driver issues during CLI/migrations
+        }
+    }
 
     protected function casts(): array
     {

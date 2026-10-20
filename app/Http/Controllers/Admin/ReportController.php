@@ -7,6 +7,7 @@ use App\Models\Quote;
 use App\Models\QuoteItem;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,9 +21,12 @@ class ReportController extends Controller
         $dateFrom = $request->input('date_from', now()->subDays(90)->toDateString());
         $dateTo = $request->input('date_to', now()->toDateString());
 
+        $fromDateTime = $dateFrom ? Carbon::parse($dateFrom)->startOfDay() : null;
+        $toDateTime = $dateTo ? Carbon::parse($dateTo)->endOfDay() : null;
+
         $baseQuery = Quote::query()
-            ->when($dateFrom, fn ($q) => $q->whereDate('created_at', '>=', $dateFrom))
-            ->when($dateTo, fn ($q) => $q->whereDate('created_at', '<=', $dateTo));
+            ->when($fromDateTime, fn ($q) => $q->where('created_at', '>=', $fromDateTime))
+            ->when($toDateTime, fn ($q) => $q->where('created_at', '<=', $toDateTime));
 
         $totalQuotes = (clone $baseQuery)->count();
         $respondedQuotes = (clone $baseQuery)->whereIn('status', ['respondida', 'aceptada'])->count();
@@ -56,9 +60,9 @@ class ReportController extends Controller
             ->keyBy('id');
 
         $topProducts = QuoteItem::query()
-            ->whereHas('quote', function ($q) use ($dateFrom, $dateTo) {
-                $q->when($dateFrom, fn ($sq) => $sq->whereDate('created_at', '>=', $dateFrom))
-                    ->when($dateTo, fn ($sq) => $sq->whereDate('created_at', '<=', $dateTo));
+            ->whereHas('quote', function ($q) use ($fromDateTime, $toDateTime) {
+                $q->when($fromDateTime, fn ($sq) => $sq->where('created_at', '>=', $fromDateTime))
+                    ->when($toDateTime, fn ($sq) => $sq->where('created_at', '<=', $toDateTime));
             })
             ->select([
                 'sku_snapshot',
@@ -97,14 +101,17 @@ class ReportController extends Controller
         $dateFrom = $request->input('date_from', now()->subDays(90)->toDateString());
         $dateTo = $request->input('date_to', now()->toDateString());
 
+        $fromDateTime = $dateFrom ? Carbon::parse($dateFrom)->startOfDay() : null;
+        $toDateTime = $dateTo ? Carbon::parse($dateTo)->endOfDay() : null;
+
         $stream = fopen('php://temp', 'r+');
         fwrite($stream, "\xEF\xBB\xBF");
 
         if ($type === 'quotes_by_status') {
             fputcsv($stream, ['estado_codigo', 'estado_nombre', 'cantidad_cotizaciones', 'monto_ofertado_acumulado']);
             $rows = Quote::query()
-                ->when($dateFrom, fn ($q) => $q->whereDate('created_at', '>=', $dateFrom))
-                ->when($dateTo, fn ($q) => $q->whereDate('created_at', '<=', $dateTo))
+                ->when($fromDateTime, fn ($q) => $q->where('created_at', '>=', $fromDateTime))
+                ->when($toDateTime, fn ($q) => $q->where('created_at', '<=', $toDateTime))
                 ->select('status', DB::raw('COUNT(*) as total'), DB::raw('SUM(COALESCE(total_offered, 0)) as sum_offered'))
                 ->groupBy('status')
                 ->get();
@@ -121,9 +128,9 @@ class ReportController extends Controller
         } else {
             fputcsv($stream, ['sku', 'producto', 'unidad_venta', 'cotizaciones_distintas', 'cantidad_total_solicitada']);
             $rows = QuoteItem::query()
-                ->whereHas('quote', function ($q) use ($dateFrom, $dateTo) {
-                    $q->when($dateFrom, fn ($sq) => $sq->whereDate('created_at', '>=', $dateFrom))
-                        ->when($dateTo, fn ($sq) => $sq->whereDate('created_at', '<=', $dateTo));
+                ->whereHas('quote', function ($q) use ($fromDateTime, $toDateTime) {
+                    $q->when($fromDateTime, fn ($sq) => $sq->where('created_at', '>=', $fromDateTime))
+                        ->when($toDateTime, fn ($sq) => $sq->where('created_at', '<=', $toDateTime));
                 })
                 ->select([
                     'sku_snapshot',

@@ -277,19 +277,39 @@ class QuoteService
                 'privacy_accepted_at' => $data['privacy_accepted_at'] ?? now(),
             ]);
 
+            $missingProductIds = [];
+            $missingVariantIds = [];
+
+            foreach ($items as $itemData) {
+                if ((empty($itemData['product']) || ! ($itemData['product'] instanceof Product)) && ! empty($itemData['product_id'])) {
+                    $missingProductIds[] = (int) $itemData['product_id'];
+                }
+                if ((empty($itemData['variant']) || ! ($itemData['variant'] instanceof ProductVariant)) && ! empty($itemData['variant_id'])) {
+                    $missingVariantIds[] = (int) $itemData['variant_id'];
+                }
+            }
+
+            $preloadedProducts = ! empty($missingProductIds)
+                ? Product::withTrashed()->whereIn('id', array_unique($missingProductIds))->get()->keyBy('id')
+                : collect();
+
+            $preloadedVariants = ! empty($missingVariantIds)
+                ? ProductVariant::query()->whereIn('id', array_unique($missingVariantIds))->get()->keyBy('id')
+                : collect();
+
             foreach ($items as $itemData) {
                 $product = null;
                 if (! empty($itemData['product']) && $itemData['product'] instanceof Product) {
                     $product = $itemData['product'];
                 } elseif (! empty($itemData['product_id'])) {
-                    $product = Product::withTrashed()->find((int) $itemData['product_id']);
+                    $product = $preloadedProducts->get((int) $itemData['product_id']);
                 }
 
                 $variant = null;
                 if (! empty($itemData['variant']) && $itemData['variant'] instanceof ProductVariant) {
                     $variant = $itemData['variant'];
                 } elseif (! empty($itemData['variant_id'])) {
-                    $variant = ProductVariant::query()->find((int) $itemData['variant_id']);
+                    $variant = $preloadedVariants->get((int) $itemData['variant_id']);
                 }
 
                 $qty = max(0.01, (float) ($itemData['quantity'] ?? 1));

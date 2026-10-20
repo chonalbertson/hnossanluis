@@ -29,7 +29,7 @@ class ProductController extends Controller
             ->where('status', 'published')
             ->firstOrFail();
 
-        $product->increment('views_count');
+        Product::withoutTimestamps(fn () => $product->increment('views_count'));
 
         $groupedSpecs = $product->specifications->groupBy(
             fn ($spec) => $spec->spec_group ?: 'Especificaciones Técnicas'
@@ -46,7 +46,32 @@ class ProductController extends Controller
         }
 
         $relatedProducts = Product::query()
-            ->with(['category', 'subcategory', 'brand', 'images', 'specifications', 'documents', 'variants'])
+            ->select([
+                'id',
+                'sku',
+                'name',
+                'slug',
+                'short_description',
+                'brand_id',
+                'category_id',
+                'subcategory_id',
+                'dimensions',
+                'material',
+                'sale_unit',
+                'price',
+                'currency',
+                'price_visibility',
+                'availability_status',
+                'technical_pdf_path',
+                'status',
+                'is_featured',
+                'views_count',
+                'meta_title',
+                'meta_description',
+                'created_at',
+                'updated_at',
+            ])
+            ->with(['category', 'subcategory', 'brand', 'images', 'variants'])
             ->where('status', 'published')
             ->where('id', '!=', $product->id)
             ->where(function ($query) use ($product) {

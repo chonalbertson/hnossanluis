@@ -199,6 +199,20 @@ class CatalogController extends Controller
         $prefixTerm = $q.'%';
 
         $productQuery = Product::query()
+            ->select([
+                'id',
+                'sku',
+                'name',
+                'slug',
+                'brand_id',
+                'category_id',
+                'sale_unit',
+                'price',
+                'currency',
+                'price_visibility',
+                'availability_status',
+                'is_featured',
+            ])
             ->with(['category', 'brand', 'images'])
             ->where('status', 'published')
             ->where(function (Builder $builder) use ($likeTerm) {

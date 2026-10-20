@@ -10,7 +10,7 @@
 
     $showAvailability = (bool) SiteSetting::getValue('commercial_show_availability_badge', true);
     $showPrice = $product->shouldShowPrice();
-    $formattedPrice = $product->formattedPrice();
+    $formattedPrice = $showPrice ? $product->formattedPrice() : null;
     $primaryThumb = $product->primaryThumbnailUrl();
     $secondaryImage = $product->secondaryThumbnailUrl();
     $whatsappUrl = app(WhatsAppService::class)->productInquiryUrl($product);

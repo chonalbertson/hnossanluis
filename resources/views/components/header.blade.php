@@ -11,18 +11,7 @@
     $contactEmail = (string) SiteSetting::getValue('company_contact_email', 'ventas@hnssanluis.com');
     $whatsappAdvisors = app(WhatsAppService::class)->getAdvisors();
 
-    $navCategories = Category::query()
-        ->whereNull('parent_id')
-        ->where('is_active', true)
-        ->withCount(['products' => fn ($q) => $q->where('status', 'published')])
-        ->with([
-            'children' => fn ($q) => $q
-                ->where('is_active', true)
-                ->withCount(['subProducts' => fn ($sq) => $sq->where('status', 'published')])
-                ->orderBy('sort_order'),
-        ])
-        ->orderBy('sort_order')
-        ->get();
+    $navCategories = Category::cachedNavigationTree();
 
     $quoteCartCount = app(QuoteService::class)->countItems();
     $currentUser = auth()->user();

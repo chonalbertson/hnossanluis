@@ -12,8 +12,13 @@
     use App\Models\SiteSetting;
     use App\Services\WhatsAppService;
 
-    $floatingEnabled = (bool) SiteSetting::getValue('whatsapp_floating_button_enabled', true);
-    $targetUrl = $url ?: app(WhatsAppService::class)->generalContactUrl();
+    $floatingEnabled = $variant === 'floating'
+        ? (bool) SiteSetting::getValue('whatsapp_floating_button_enabled', true)
+        : false;
+
+    $targetUrl = ($variant !== 'floating' || $floatingEnabled)
+        ? ($url ?: app(WhatsAppService::class)->generalContactUrl())
+        : '#';
 
     $gaPayload = json_encode([
         'cta_location' => $ctaLocation,

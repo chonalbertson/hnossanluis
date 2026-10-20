@@ -278,6 +278,9 @@ class ProductImportExportService
         $updatedCount = 0;
 
         DB::transaction(function () use ($rows, $batch, &$createdCount, &$updatedCount) {
+            $categoriesBySlug = Category::query()->get()->keyBy('slug');
+            $brandsBySlug = Brand::query()->get()->keyBy('slug');
+
             foreach (array_chunk($rows, 100) as $chunk) {
                 foreach ($chunk as $rowData) {
                     $sku = strtoupper(trim((string) $rowData['sku']));
@@ -286,30 +289,32 @@ class ProductImportExportService
                     // Resolve or create Main Category
                     $categoryName = trim((string) $rowData['category']);
                     $categorySlug = Str::slug($categoryName);
-                    $category = Category::query()->where('slug', $categorySlug)->first()
-                        ?? Category::query()->create([
+                    $category = $categoriesBySlug->get($categorySlug);
+                    if (! $category) {
+                        $category = Category::query()->create([
                             'name' => $categoryName,
                             'slug' => $categorySlug,
                             'is_active' => true,
                         ]);
+                        $categoriesBySlug->put($categorySlug, $category);
+                    }
 
                     // Resolve or create Subcategory if provided
                     $subcategoryId = null;
                     $subcategoryName = trim((string) ($rowData['subcategory'] ?? ''));
                     if ($subcategoryName !== '') {
                         $subSlug = Str::slug($category->slug.'-'.$subcategoryName);
-                        $subcategory = Category::query()
-                            ->where('slug', $subSlug)
-                            ->orWhere(function ($q) use ($subcategoryName, $category) {
-                                $q->where('parent_id', $category->id)->where('name', $subcategoryName);
-                            })
-                            ->first()
-                            ?? Category::query()->create([
+                        $subcategory = $categoriesBySlug->get($subSlug)
+                            ?? $categoriesBySlug->first(fn (Category $cat) => $cat->parent_id === $category->id && $cat->name === $subcategoryName);
+                        if (! $subcategory) {
+                            $subcategory = Category::query()->create([
                                 'parent_id' => $category->id,
                                 'name' => $subcategoryName,
                                 'slug' => $subSlug,
                                 'is_active' => true,
                             ]);
+                            $categoriesBySlug->put($subcategory->slug, $subcategory);
+                        }
                         $subcategoryId = $subcategory->id;
                     }
 
@@ -318,12 +323,15 @@ class ProductImportExportService
                     $brandName = trim((string) ($rowData['brand'] ?? ''));
                     if ($brandName !== '') {
                         $brandSlug = Str::slug($brandName);
-                        $brand = Brand::query()->where('slug', $brandSlug)->first()
-                            ?? Brand::query()->create([
+                        $brand = $brandsBySlug->get($brandSlug);
+                        if (! $brand) {
+                            $brand = Brand::query()->create([
                                 'name' => $brandName,
                                 'slug' => $brandSlug,
                                 'is_active' => true,
                             ]);
+                            $brandsBySlug->put($brandSlug, $brand);
+                        }
                         $brandId = $brand->id;
                     }
 

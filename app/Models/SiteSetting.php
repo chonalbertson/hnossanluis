@@ -13,6 +13,15 @@ class SiteSetting extends Model
 
     public const CACHE_PREFIX = 'site_setting:';
 
+    public const ALL_CACHE_KEY = 'site_settings:all_records';
+
+    /**
+     * @var array<string, self>|null
+     */
+    protected static ?array $memoizedAll = null;
+
+    protected static ?int $memoizedAppId = null;
+
     protected $fillable = [
         'setting_group',
         'setting_key',
@@ -21,6 +30,17 @@ class SiteSetting extends Model
         'label',
         'is_public',
     ];
+
+    protected static function booted(): void
+    {
+        static::saved(function (self $setting): void {
+            self::clearCache($setting->setting_key);
+        });
+
+        static::deleted(function (self $setting): void {
+            self::clearCache($setting->setting_key);
+        });
+    }
 
     protected function casts(): array
     {
@@ -32,17 +52,44 @@ class SiteSetting extends Model
     public static function getValue(string $key, mixed $default = null): mixed
     {
         try {
-            $setting = Cache::remember(self::CACHE_PREFIX.$key, 3600, function () use ($key) {
-                return self::query()->where('setting_key', $key)->first();
-            });
+            $currentAppId = spl_object_id(app());
+            if (self::$memoizedAppId !== $currentAppId) {
+                self::$memoizedAll = null;
+                self::$memoizedAppId = $currentAppId;
+            }
 
-            if (! $setting) {
+            self::$memoizedAll ??= Cache::remember(
+                self::ALL_CACHE_KEY,
+                3600,
+                fn (): array => self::query()
+                    ->get(['setting_key', 'setting_value', 'setting_type'])
+                    ->keyBy('setting_key')
+                    ->all()
+            );
+
+            if (! isset(self::$memoizedAll[$key])) {
                 return $default;
             }
 
-            return self::castSettingValue($setting->setting_value, $setting->setting_type);
+            $setting = self::$memoizedAll[$key];
+
+            return self::castSettingValue($setting->setting_value, (string) $setting->setting_type);
         } catch (Throwable) {
             return $default;
+        }
+    }
+
+    public static function clearCache(?string $key = null): void
+    {
+        self::$memoizedAll = null;
+
+        try {
+            Cache::forget(self::ALL_CACHE_KEY);
+            if ($key !== null) {
+                Cache::forget(self::CACHE_PREFIX.$key);
+            }
+        } catch (Throwable) {
+            // Ignore cache driver issues during CLI/migrations
         }
     }
 
@@ -83,11 +130,7 @@ class SiteSetting extends Model
             $attributes
         );
 
-        try {
-            Cache::forget(self::CACHE_PREFIX.$key);
-        } catch (Throwable) {
-            // Ignore cache driver issues during CLI/migrations
-        }
+        self::clearCache($key);
 
         return $setting;
     }

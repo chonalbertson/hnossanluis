@@ -11,12 +11,7 @@
     $companyAddress = (string) SiteSetting::getValue('company_address', 'Av. Guillermo Dansey 429 - Lima Centro, Lima, Perú');
     $businessHours = (string) SiteSetting::getValue('company_business_hours', 'Lunes a Viernes: 8:30 am - 6:00 pm | Sábados: 9:00 am - 1:00 pm');
 
-    $footerCategories = Category::query()
-        ->whereNull('parent_id')
-        ->where('is_active', true)
-        ->orderBy('sort_order')
-        ->limit(6)
-        ->get();
+    $footerCategories = Category::cachedNavigationTree()->take(6);
 
     $whatsappService = app(WhatsAppService::class);
     $whatsappUrl = $whatsappService->generalContactUrl();

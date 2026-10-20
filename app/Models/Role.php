@@ -41,10 +41,10 @@ class Role extends Model
             return true;
         }
 
-        if ($this->relationLoaded('permissions')) {
-            return $this->permissions->contains('slug', $permissionSlug);
+        if (! $this->relationLoaded('permissions')) {
+            $this->load('permissions');
         }
 
-        return $this->permissions()->where('slug', $permissionSlug)->exists();
+        return $this->permissions->contains('slug', $permissionSlug);
     }
 }

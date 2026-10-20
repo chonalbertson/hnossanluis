@@ -16,7 +16,6 @@ use App\Models\SecurityIncident;
 use App\Models\SecurityScan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -25,30 +24,34 @@ class DashboardController extends Controller
     {
         abort_unless($request->user()?->canAccessAdminPanel(), 403);
 
-        $hasIncidentsTable = Schema::hasTable('security_incidents');
-        $hasScansTable = Schema::hasTable('security_scans');
+        $quotesByStatus = Quote::query()
+            ->select('status', DB::raw('COUNT(*) as total'))
+            ->groupBy('status')
+            ->pluck('total', 'status')
+            ->all();
+
+        $totalQuotes = (int) array_sum($quotesByStatus);
+        $pendingQuotes = (int) (($quotesByStatus['nueva'] ?? 0)
+            + ($quotesByStatus['en_revision'] ?? 0)
+            + ($quotesByStatus['pendiente_info'] ?? 0)
+            + ($quotesByStatus['en_preparacion'] ?? 0));
+        $respondedQuotes = (int) (($quotesByStatus['respondida'] ?? 0) + ($quotesByStatus['aceptada'] ?? 0));
 
         $kpis = [
             'published_products' => Product::query()->where('status', 'published')->count(),
             'total_products' => Product::query()->count(),
             'on_request_products' => Product::query()->where('availability_status', 'on_request')->count(),
-            'total_quotes' => Quote::query()->count(),
-            'pending_quotes' => Quote::query()->whereIn('status', ['nueva', 'en_revision', 'pendiente_info', 'en_preparacion'])->count(),
-            'new_quotes_today' => Quote::query()->whereDate('created_at', today())->count(),
-            'responded_quotes' => Quote::query()->whereIn('status', ['respondida', 'aceptada'])->count(),
+            'total_quotes' => $totalQuotes,
+            'pending_quotes' => $pendingQuotes,
+            'new_quotes_today' => Quote::query()->whereBetween('created_at', [now()->startOfDay(), now()->endOfDay()])->count(),
+            'responded_quotes' => $respondedQuotes,
             'total_customers' => Customer::query()->count(),
             'completed_imports' => ProductImportBatch::query()->where('status', 'completed')->count(),
             'new_contact_messages' => ContactMessage::query()->where('status', 'nuevo')->count(),
             'total_contact_messages' => ContactMessage::query()->count(),
-            'security_pending_incidents' => $hasIncidentsTable
-                ? SecurityIncident::query()->whereIn('status', ['blocked', 'quarantined'])->count()
-                : 0,
-            'security_quarantined_files' => $hasIncidentsTable
-                ? SecurityIncident::query()->whereNotNull('quarantine_path')->count()
-                : 0,
-            'latest_security_scan' => $hasScansTable
-                ? SecurityScan::query()->latest()->first()
-                : null,
+            'security_pending_incidents' => SecurityIncident::query()->whereIn('status', ['blocked', 'quarantined'])->count(),
+            'security_quarantined_files' => SecurityIncident::query()->whereNotNull('quarantine_path')->count(),
+            'latest_security_scan' => SecurityScan::query()->latest()->first(),
         ];
 
         $recentQuotes = Quote::query()
@@ -77,12 +80,6 @@ class DashboardController extends Controller
             ->get()
             ->keyBy('id');
 
-        $quotesByStatus = Quote::query()
-            ->select('status', DB::raw('COUNT(*) as total'))
-            ->groupBy('status')
-            ->pluck('total', 'status')
-            ->all();
-
         $recentActivity = ActivityLog::query()
             ->with('user')
             ->latest()
@@ -90,16 +87,23 @@ class DashboardController extends Controller
             ->get();
 
         $monthStart = now()->startOfMonth();
-        $quoteDates = Quote::query()
-            ->where('created_at', '>=', $monthStart->copy()->subMonths(5))
-            ->pluck('created_at');
+        $yearMonthExpr = DB::connection()->getDriverName() === 'sqlite'
+            ? "strftime('%Y-%m', created_at)"
+            : "DATE_FORMAT(created_at, '%Y-%m')";
 
-        $quotesPerMonth = collect(range(5, 0))->map(function (int $monthsAgo) use ($monthStart, $quoteDates): array {
+        $monthlyCounts = Quote::query()
+            ->where('created_at', '>=', $monthStart->copy()->subMonths(5))
+            ->selectRaw("{$yearMonthExpr} as ym, COUNT(*) as total")
+            ->groupBy('ym')
+            ->pluck('total', 'ym');
+
+        $quotesPerMonth = collect(range(5, 0))->map(function (int $monthsAgo) use ($monthStart, $monthlyCounts): array {
             $month = $monthStart->copy()->subMonths($monthsAgo);
+            $ymKey = $month->format('Y-m');
 
             return [
                 'label' => ucfirst($month->locale('es')->translatedFormat('M')),
-                'total' => $quoteDates->filter(fn ($date) => $date->isSameMonth($month))->count(),
+                'total' => (int) ($monthlyCounts[$ymKey] ?? 0),
                 'is_current' => $monthsAgo === 0,
             ];
         })->all();

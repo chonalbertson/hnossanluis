@@ -17,6 +17,31 @@ class CatalogSearchService
     public function search(array $filters = [], int $perPage = 12): LengthAwarePaginator
     {
         $query = Product::query()
+            ->select([
+                'id',
+                'sku',
+                'name',
+                'slug',
+                'short_description',
+                'brand_id',
+                'category_id',
+                'subcategory_id',
+                'dimensions',
+                'material',
+                'sale_unit',
+                'price',
+                'currency',
+                'price_visibility',
+                'availability_status',
+                'technical_pdf_path',
+                'status',
+                'is_featured',
+                'views_count',
+                'meta_title',
+                'meta_description',
+                'created_at',
+                'updated_at',
+            ])
             ->with(['category', 'subcategory', 'brand', 'images', 'specifications', 'variants']);
 
         if (empty($filters['include_all_statuses'])) {
@@ -190,17 +215,7 @@ class CatalogSearchService
      */
     public function getFilterOptions(?int $categoryId = null): array
     {
-        $categories = Category::query()
-            ->whereNull('parent_id')
-            ->where('is_active', true)
-            ->withCount(['products' => fn ($q) => $q->where('status', 'published')])
-            ->with([
-                'children' => fn ($q) => $q->where('is_active', true)
-                    ->withCount(['subProducts' => fn ($sq) => $sq->where('status', 'published')])
-                    ->orderBy('sort_order'),
-            ])
-            ->orderBy('sort_order')
-            ->get();
+        $categories = Category::cachedNavigationTree();
 
         $brands = Brand::query()
             ->where('is_active', true)

@@ -9,6 +9,11 @@ use App\Models\SiteSetting;
 class WhatsAppService
 {
     /**
+     * @var array<int, array{name: string, phone: string, digits: string, url: string}>|null
+     */
+    private ?array $cachedAdvisors = null;
+
+    /**
      * Default WhatsApp advisors and numbers.
      *
      * @return array<int, array{name: string, phone: string}>
@@ -47,6 +52,10 @@ class WhatsAppService
      */
     public function getAdvisors(?string $customMessage = null): array
     {
+        if ($customMessage === null && $this->cachedAdvisors !== null) {
+            return $this->cachedAdvisors;
+        }
+
         $stored = SiteSetting::getValue('whatsapp_advisors', self::defaultAdvisors());
         if (is_string($stored)) {
             $decoded = json_decode($stored, true);
@@ -56,6 +65,11 @@ class WhatsAppService
         if (! is_array($stored) || empty($stored)) {
             $stored = self::defaultAdvisors();
         }
+
+        $defaultMessage = (string) SiteSetting::getValue(
+            'whatsapp_default_message',
+            'Hola IMPORT HNOS SAN LUIS S.A.C., deseo recibir asesoría técnica y cotización sobre su catálogo de productos.'
+        );
 
         $advisors = [];
         foreach ($stored as $row) {
@@ -70,7 +84,7 @@ class WhatsAppService
                 'name' => $name,
                 'phone' => $phone,
                 'digits' => $digits,
-                'url' => $this->advisorUrl($phone, $name, $customMessage),
+                'url' => $this->advisorUrl($phone, $name, $customMessage, $defaultMessage),
             ];
         }
 
@@ -80,9 +94,13 @@ class WhatsAppService
                     'name' => $row['name'],
                     'phone' => $row['phone'],
                     'digits' => $this->normalizePhoneDigits($row['phone']),
-                    'url' => $this->advisorUrl($row['phone'], $row['name'], $customMessage),
+                    'url' => $this->advisorUrl($row['phone'], $row['name'], $customMessage, $defaultMessage),
                 ];
             }
+        }
+
+        if ($customMessage === null) {
+            $this->cachedAdvisors = $advisors;
         }
 
         return $advisors;
@@ -91,14 +109,18 @@ class WhatsAppService
     /**
      * Build a pre-filled WhatsApp URL for a specific advisor phone number.
      */
-    public function advisorUrl(string $rawPhone, ?string $advisorName = null, ?string $customMessage = null): string
-    {
+    public function advisorUrl(
+        string $rawPhone,
+        ?string $advisorName = null,
+        ?string $customMessage = null,
+        ?string $preloadedDefaultMessage = null
+    ): string {
         $digits = $this->normalizePhoneDigits($rawPhone);
 
         if ($customMessage !== null && trim($customMessage) !== '') {
             $message = trim($customMessage);
         } else {
-            $defaultMessage = (string) SiteSetting::getValue(
+            $defaultMessage = $preloadedDefaultMessage ?? (string) SiteSetting::getValue(
                 'whatsapp_default_message',
                 'Hola IMPORT HNOS SAN LUIS S.A.C., deseo recibir asesoría técnica y cotización sobre su catálogo de productos.'
             );

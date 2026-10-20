@@ -16,6 +16,7 @@ use App\Services\WhatsAppService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
@@ -338,8 +339,6 @@ class QuoteController extends Controller
             403
         );
 
-        $quotes = $this->buildFilteredQuery($request)->orderByDesc('created_at')->get();
-
         $stream = fopen('php://temp', 'r+');
         fwrite($stream, "\xEF\xBB\xBF");
         fputcsv($stream, [
@@ -361,26 +360,34 @@ class QuoteController extends Controller
             'total_ofertado',
         ]);
 
-        foreach ($quotes as $q) {
-            fputcsv($stream, [
-                $q->reference_code,
-                $q->created_at?->format('Y-m-d H:i'),
-                $q->statusLabel(),
-                $q->contact_name,
-                $q->company_name ?? '',
-                $q->ruc ?? '',
-                $q->contact_email,
-                $q->contact_phone,
-                $q->assignedSeller?->name ?? 'Sin asignar',
-                $q->request_type,
-                $q->origin,
-                $q->items->count(),
-                $q->currency,
-                $q->subtotal_offered ?? '',
-                $q->tax_offered ?? '',
-                $q->total_offered ?? '',
-            ]);
-        }
+        $exportedCount = 0;
+
+        $this->buildFilteredQuery($request, false)
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->chunk(500, function ($quotes) use ($stream, &$exportedCount) {
+                foreach ($quotes as $q) {
+                    $exportedCount++;
+                    fputcsv($stream, [
+                        $q->reference_code,
+                        $q->created_at?->format('Y-m-d H:i'),
+                        $q->statusLabel(),
+                        $q->contact_name,
+                        $q->company_name ?? '',
+                        $q->ruc ?? '',
+                        $q->contact_email,
+                        $q->contact_phone,
+                        $q->assignedSeller?->name ?? 'Sin asignar',
+                        $q->request_type,
+                        $q->origin,
+                        $q->items_count,
+                        $q->currency,
+                        $q->subtotal_offered ?? '',
+                        $q->tax_offered ?? '',
+                        $q->total_offered ?? '',
+                    ]);
+                }
+            });
 
         rewind($stream);
         $csv = stream_get_contents($stream) ?: '';
@@ -389,7 +396,7 @@ class QuoteController extends Controller
         $this->activityLogger->log(
             'quotes.exported',
             'quotes',
-            sprintf('Exportación CSV de %d solicitudes de cotización.', $quotes->count())
+            sprintf('Exportación CSV de %d solicitudes de cotización.', $exportedCount)
         );
 
         return response($csv, 200, [
@@ -398,9 +405,11 @@ class QuoteController extends Controller
         ]);
     }
 
-    protected function buildFilteredQuery(Request $request): Builder
+    protected function buildFilteredQuery(Request $request, bool $withItems = true): Builder
     {
-        $query = Quote::query()->with(['customer', 'assignedSeller', 'items']);
+        $query = $withItems
+            ? Quote::query()->with(['customer', 'assignedSeller', 'items'])
+            : Quote::query()->with(['customer', 'assignedSeller'])->withCount('items');
 
         if ($request->filled('q')) {
             $term = '%'.trim($request->string('q')->toString()).'%';
@@ -428,11 +437,11 @@ class QuoteController extends Controller
         }
 
         if ($request->filled('date_from')) {
-            $query->whereDate('created_at', '>=', $request->string('date_from')->toString());
+            $query->where('created_at', '>=', Carbon::parse($request->string('date_from')->toString())->startOfDay());
         }
 
         if ($request->filled('date_to')) {
-            $query->whereDate('created_at', '<=', $request->string('date_to')->toString());
+            $query->where('created_at', '<=', Carbon::parse($request->string('date_to')->toString())->endOfDay());
         }
 
         return $query;

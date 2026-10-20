@@ -11,7 +11,6 @@ use App\Models\Product;
 use App\Models\SiteSetting;
 use App\Models\Testimonial;
 use App\Services\WhatsAppService;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
 class HomeController extends Controller
@@ -22,25 +21,42 @@ class HomeController extends Controller
 
     public function index(): View
     {
-        $homePage = PageContent::query()->where('page_key', 'home')->first();
-        $aboutPage = PageContent::query()->where('page_key', 'about')->first();
+        $pages = PageContent::query()
+            ->whereIn('page_key', ['home', 'about'])
+            ->get()
+            ->keyBy('page_key');
+        $homePage = $pages->get('home');
+        $aboutPage = $pages->get('about');
 
-        $categories = Category::query()
-            ->whereNull('parent_id')
-            ->where('is_active', true)
-            ->with([
-                'children' => fn ($q) => $q->where('is_active', true)
-                    ->withCount(['subProducts' => fn ($sq) => $sq->where('status', 'published')])
-                    ->orderBy('sort_order'),
-            ])
-            ->withCount([
-                'products' => fn ($q) => $q->where('status', 'published'),
-            ])
-            ->orderBy('sort_order')
-            ->get();
+        $categories = Category::cachedNavigationTree();
 
         $baseProductQuery = fn () => Product::query()
-            ->with(['category', 'subcategory', 'brand', 'images', 'specifications', 'documents', 'variants'])
+            ->select([
+                'id',
+                'sku',
+                'name',
+                'slug',
+                'short_description',
+                'brand_id',
+                'category_id',
+                'subcategory_id',
+                'dimensions',
+                'material',
+                'sale_unit',
+                'price',
+                'currency',
+                'price_visibility',
+                'availability_status',
+                'technical_pdf_path',
+                'status',
+                'is_featured',
+                'views_count',
+                'meta_title',
+                'meta_description',
+                'created_at',
+                'updated_at',
+            ])
+            ->with(['category', 'subcategory', 'brand', 'images', 'variants'])
             ->where('status', 'published');
 
         $featuredProducts = $baseProductQuery()
@@ -64,7 +80,7 @@ class HomeController extends Controller
             ->get();
 
         // Interactive specialty tabs for the Home product showcase (randomized on every load)
-        $herrajesCatIds = Category::query()
+        $herrajesCatIds = $categories
             ->whereIn('slug', [
                 'herrajes-para-muebles',
                 'tiradores-jaladores-y-perillas',
@@ -74,11 +90,11 @@ class HomeController extends Controller
             ])
             ->pluck('id');
 
-        $seguridadCatIds = Category::query()
+        $seguridadCatIds = $categories
             ->whereIn('slug', ['chapas-cerraduras-y-otros', 'tornillos-tarugos-y-otros', 'pegamentos-y-acabados'])
             ->pluck('id');
 
-        $herramientasCatIds = Category::query()
+        $herramientasCatIds = $categories
             ->whereIn('slug', [
                 'herramientas-manuales',
                 'electricidad',
@@ -110,14 +126,15 @@ class HomeController extends Controller
         $verifiedBrands = Brand::query()
             ->where('is_active', true)
             ->where('is_verified', true)
-            ->whereHas('products', fn ($q) => $q->where('status', 'published'))
             ->withCount([
                 'products' => fn ($q) => $q->where('status', 'published'),
             ])
             ->orderByDesc('products_count')
             ->orderBy('name')
             ->limit(18)
-            ->get();
+            ->get()
+            ->filter(fn (Brand $brand) => $brand->products_count > 0)
+            ->values();
 
         $promoProducts = $baseProductQuery()
             ->whereHas('images')
@@ -145,7 +162,7 @@ class HomeController extends Controller
         $catalogStats = [
             'products' => Product::query()->where('status', 'published')->count(),
             'categories' => $categories->count(),
-            'subcategories' => Category::query()->whereNotNull('parent_id')->where('is_active', true)->count(),
+            'subcategories' => $categories->sum(fn (Category $cat) => $cat->children->count()),
             'brands' => Brand::query()->where('is_active', true)->count(),
         ];
 
@@ -161,8 +178,12 @@ class HomeController extends Controller
             ['slug' => 'bticino', 'name' => 'Bticino', 'webp' => asset('images/brands/logo-bticino.webp'), 'png' => asset('images/brands/logo-bticino.png'), 'url' => route('catalog.index', ['brand' => 'bticino'])],
         ];
 
+        $tiradoresCatIds = $categories
+            ->whereIn('slug', ['tiradores-jaladores-y-perillas', 'organizacion-cocina-y-closet'])
+            ->pluck('id');
+
         $tiradoresProducts = $baseProductQuery()
-            ->whereHas('category', fn ($q) => $q->whereIn('slug', ['tiradores-jaladores-y-perillas', 'organizacion-cocina-y-closet']))
+            ->whereIn('category_id', $tiradoresCatIds)
             ->whereHas('images')
             ->inRandomOrder()
             ->limit(3)
@@ -179,11 +200,15 @@ class HomeController extends Controller
 
         $heroSlides = [];
 
-        if (Schema::hasTable('hero_banners')) {
-            if (HeroBanner::query()->count() === 0) {
-                foreach (HeroBanner::defaultSlidesDefinition() as $defaultSlide) {
-                    HeroBanner::query()->create($defaultSlide);
-                }
+        $activeBanners = HeroBanner::query()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get();
+
+        if ($activeBanners->isEmpty() && HeroBanner::query()->doesntExist()) {
+            foreach (HeroBanner::defaultSlidesDefinition() as $defaultSlide) {
+                HeroBanner::query()->create($defaultSlide);
             }
 
             $activeBanners = HeroBanner::query()
@@ -191,38 +216,38 @@ class HomeController extends Controller
                 ->orderBy('sort_order')
                 ->orderBy('id')
                 ->get();
+        }
 
-            foreach ($activeBanners as $banner) {
-                $sourceKey = $banner->product_source ?: 'destacados';
-                $slideProducts = ($banner->show_products_showcase && $sourceKey !== 'none')
-                    ? ($productPools[$sourceKey] ?? $productPools['destacados'])
-                    : collect();
+        foreach ($activeBanners as $banner) {
+            $sourceKey = $banner->product_source ?: 'destacados';
+            $slideProducts = ($banner->show_products_showcase && $sourceKey !== 'none')
+                ? ($productPools[$sourceKey] ?? $productPools['destacados'])
+                : collect();
 
-                $heroSlides[] = [
-                    'id' => $banner->id,
-                    'label' => $banner->label,
-                    'eyebrow' => $banner->eyebrow,
-                    'badge_metric' => $banner->badge_metric,
-                    'title' => $banner->title,
-                    'highlight' => $banner->highlight,
-                    'suffix' => $banner->suffix,
-                    'text' => $banner->description,
-                    'background_image_url' => $banner->backgroundImageUrl(),
-                    'mobile_background_image_url' => $banner->mobileBackgroundImageUrl(),
-                    'overlay_opacity' => $banner->overlay_opacity ?? 75,
-                    'show_products_showcase' => (bool) $banner->show_products_showcase && $sourceKey !== 'none',
-                    'primary' => [
-                        'label' => $banner->primary_cta_label ?: 'Explorar Catálogo',
-                        'url' => $banner->primary_cta_url ?: route('catalog.index'),
-                    ],
-                    'secondary' => [
-                        'label' => $banner->secondary_cta_label ?: 'Cotizar Lista',
-                        'url' => $banner->secondary_cta_url ?: route('quote.index'),
-                    ],
-                    'accent' => $banner->accent ?: 'red',
-                    'products' => $slideProducts,
-                ];
-            }
+            $heroSlides[] = [
+                'id' => $banner->id,
+                'label' => $banner->label,
+                'eyebrow' => $banner->eyebrow,
+                'badge_metric' => $banner->badge_metric,
+                'title' => $banner->title,
+                'highlight' => $banner->highlight,
+                'suffix' => $banner->suffix,
+                'text' => $banner->description,
+                'background_image_url' => $banner->backgroundImageUrl(),
+                'mobile_background_image_url' => $banner->mobileBackgroundImageUrl(),
+                'overlay_opacity' => $banner->overlay_opacity ?? 75,
+                'show_products_showcase' => (bool) $banner->show_products_showcase && $sourceKey !== 'none',
+                'primary' => [
+                    'label' => $banner->primary_cta_label ?: 'Explorar Catálogo',
+                    'url' => $banner->primary_cta_url ?: route('catalog.index'),
+                ],
+                'secondary' => [
+                    'label' => $banner->secondary_cta_label ?: 'Cotizar Lista',
+                    'url' => $banner->secondary_cta_url ?: route('quote.index'),
+                ],
+                'accent' => $banner->accent ?: 'red',
+                'products' => $slideProducts,
+            ];
         }
 
         if (empty($heroSlides)) {
