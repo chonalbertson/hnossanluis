@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Storage;
 
 class HeroBanner extends Model
 {
@@ -64,7 +63,7 @@ class HeroBanner extends Model
             return $this->background_image_path;
         }
 
-        return Storage::disk('public')->url($this->background_image_path);
+        return asset('storage/'.$this->background_image_path);
     }
 
     public function mobileBackgroundImageUrl(): ?string
@@ -81,7 +80,7 @@ class HeroBanner extends Model
             return $this->mobile_background_image_path;
         }
 
-        return Storage::disk('public')->url($this->mobile_background_image_path);
+        return asset('storage/'.$this->mobile_background_image_path);
     }
 
     /**
@@ -100,6 +99,8 @@ class HeroBanner extends Model
                 'highlight' => 'Ferretería Profesional',
                 'suffix' => 'para tus Proyectos',
                 'description' => 'Abastecimiento técnico con cotizaciones por volumen (RUC) y por unidad para mueblería, carpintería en melamina, contratistas y obras en todo el Perú.',
+                'background_image_path' => 'banners/hero_banner_1_desktop.webp',
+                'mobile_background_image_path' => 'banners/hero_banner_1_mobile.webp',
                 'primary_cta_label' => 'Explorar Catálogo',
                 'primary_cta_url' => '/catalogo',
                 'secondary_cta_label' => 'Cotizar Lista',
@@ -107,7 +108,7 @@ class HeroBanner extends Model
                 'accent' => 'red',
                 'product_source' => 'destacados',
                 'show_products_showcase' => true,
-                'overlay_opacity' => 75,
+                'overlay_opacity' => 35,
                 'sort_order' => 1,
                 'is_active' => true,
             ],
@@ -119,6 +120,8 @@ class HeroBanner extends Model
                 'highlight' => 'Sistemas Corredizos',
                 'suffix' => 'de Alta Precisión',
                 'description' => 'Bisagras cazoleta cierre lento, correderas telescópicas y ocultas, sistemas corredizos Ducasse, pistones a gas y tapacantos con stock permanente.',
+                'background_image_path' => 'banners/hero_banner_2_desktop.webp',
+                'mobile_background_image_path' => 'banners/hero_banner_2_mobile.webp',
                 'primary_cta_label' => 'Ver Herrajes y Bisagras',
                 'primary_cta_url' => '/catalogo?category=herrajes-para-muebles',
                 'secondary_cta_label' => 'Sistemas Corredizos',
@@ -126,7 +129,7 @@ class HeroBanner extends Model
                 'accent' => 'blue',
                 'product_source' => 'herrajes',
                 'show_products_showcase' => true,
-                'overlay_opacity' => 75,
+                'overlay_opacity' => 35,
                 'sort_order' => 2,
                 'is_active' => true,
             ],
@@ -138,6 +141,8 @@ class HeroBanner extends Model
                 'highlight' => 'Organización de Cocina',
                 'suffix' => '& Clóset',
                 'description' => 'Colección exclusiva de jaladores en acero inoxidable y aluminio, perillas, condimenteros extraíbles, basureros, pantaloneros y accesorios de clóset.',
+                'background_image_path' => 'banners/hero_banner_3_desktop.webp',
+                'mobile_background_image_path' => 'banners/hero_banner_3_mobile.webp',
                 'primary_cta_label' => 'Tiradores y Jaladores',
                 'primary_cta_url' => '/catalogo?category=tiradores-jaladores-y-perillas',
                 'secondary_cta_label' => 'Cocina y Clóset',
@@ -145,8 +150,29 @@ class HeroBanner extends Model
                 'accent' => 'amber',
                 'product_source' => 'tiradores',
                 'show_products_showcase' => true,
-                'overlay_opacity' => 75,
+                'overlay_opacity' => 35,
                 'sort_order' => 3,
+                'is_active' => true,
+            ],
+            [
+                'label' => 'Cerraduras, LED y Taller',
+                'eyebrow' => 'Seguridad, Iluminación LED y Ensamble',
+                'badge_metric' => 'Grado Industrial B2B',
+                'title' => 'Cerraduras, Fijaciones,',
+                'highlight' => 'Iluminación LED y Taller',
+                'suffix' => '',
+                'description' => 'Cerraduras y topes en acero inoxidable, conectores Minifix, cintas LED y tomas multimedia empotrables, pegamentos MDF y plantillas de carpintería.',
+                'background_image_path' => 'banners/hero_banner_4_desktop.webp',
+                'mobile_background_image_path' => 'banners/hero_banner_4_mobile.webp',
+                'primary_cta_label' => 'Cerraduras y Fijación',
+                'primary_cta_url' => '/catalogo?category=chapas-cerraduras-y-otros',
+                'secondary_cta_label' => 'Iluminación y Tomas',
+                'secondary_cta_url' => '/catalogo?category=electricidad',
+                'accent' => 'emerald',
+                'product_source' => 'cerraduras',
+                'show_products_showcase' => true,
+                'overlay_opacity' => 35,
+                'sort_order' => 4,
                 'is_active' => true,
             ],
             [

@@ -48,12 +48,12 @@
                                      class="w-full h-full object-cover object-center">
                             </picture>
                             <div class="absolute inset-0 bg-[#0B1220]" style="opacity: {{ $overlayAlpha }}"></div>
-                            <div class="absolute inset-0 bg-gradient-to-r from-[#0B1220]/90 via-[#0B1220]/65 to-transparent"></div>
+                            <div class="absolute inset-0 bg-gradient-to-r from-[#0B1220]/80 via-[#0B1220]/30 to-transparent"></div>
                         @endif
                         <div class="banner-aura-glow absolute -top-32 -right-24 w-[36rem] h-[36rem] rounded-full {{ $accent['glow'] }} opacity-25 blur-[120px]"></div>
                         <div class="banner-aura-glow absolute -bottom-40 -left-24 w-[32rem] h-[32rem] rounded-full {{ $accent['glow2'] }} opacity-20 blur-[120px] [animation-delay:-2.5s]"></div>
-                        <div class="hero-grid-pattern absolute inset-0 {{ $bgUrl ? 'opacity-35' : '' }}"></div>
-                        <div class="absolute inset-0 bg-gradient-to-t from-[#0B1220]/85 via-transparent to-[#0B1220]/30"></div>
+                        <div class="hero-grid-pattern absolute inset-0 {{ $bgUrl ? 'opacity-15' : '' }}"></div>
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#0B1220]/55 via-transparent to-[#0B1220]/15"></div>
                     </div>
 
                     <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-32 sm:pt-14 lg:pt-16 lg:pb-36 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center lg:min-h-[630px]">
